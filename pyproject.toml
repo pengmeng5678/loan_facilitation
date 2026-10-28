@@ -1,0 +1,107 @@
+# =============================================================================
+# 助贷 AI 中台（Agent Platform + 产品知识助手 + 话术陪练）—— 工程配置
+# -----------------------------------------------------------------------------
+# 采用 src-layout：源码全部放在 src/ 下，测试放在 tests/ 下。
+# 运行方式（三选一）：
+#   ① uvicorn --app-dir src agent_platform.api.app:app --reload   ← 默认，零安装
+#   ② PYTHONPATH=src uvicorn agent_platform.api.app:app --reload  ← CI / 脚本
+#   ③ pip install -e . 之后可直接 uvicorn agent_platform.api.app:app --reload
+# 之所以默认不用 editable install，是为了让新人 clone 下来就能跑，减少环境坑。
+# ⚠️ 不要把本项目的包名（agent_platform / product_assistant 等）写进 dependencies：
+#    PyPI 上存在同名第三方包（例如 agent-platform），一旦被装进 site-packages，
+#    它会和 src 下的同名包互相遮蔽，报出与真实原因无关的 ImportError。
+# =============================================================================
+
+[build-system]
+requires = ["setuptools>=68", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "loan_facilitation"
+version = "1.0.0"
+description = "金融助贷 AI 中台：企业多智能体编排平台 + 助贷产品知识助手 + 业务员话术陪练与 AI 考核"
+readme = "README.md"
+requires-python = ">=3.11"
+license = { text = "Proprietary" }
+
+# 运行时依赖：与 venv 中已验证可用的版本对齐
+dependencies = [
+    # --- Web / API 层 ---
+    "fastapi>=0.115",
+    "uvicorn[standard]>=0.30",
+    "pydantic>=2.7",
+    "pydantic-settings>=2.3",
+    "python-dotenv>=1.0",
+    # --- Agent 编排（LangGraph 1.x：StateGraph / Checkpointer / interrupt-resume）---
+    "langgraph>=1.0",
+    "langgraph-checkpoint>=2.0",
+    "langgraph-checkpoint-sqlite>=2.0",
+    "langchain-core>=0.3",
+    # --- LLM 客户端（OpenAI 兼容协议，可对接 DashScope / DeepSeek / Ollama / vLLM）---
+    "openai>=1.40",
+    # --- 检索与向量 ---
+    "numpy>=1.26",
+    "rank-bm25>=0.2.2",
+    "qdrant-client>=1.9",
+    # --- 工程基础 ---
+    "tenacity>=8.3",
+    "httpx>=0.27",
+    "PyYAML>=6.0",
+    "tiktoken>=0.7",
+]
+
+[project.optional-dependencies]
+# 生产增强（可选）：PostgreSQL Checkpointer、Neo4j 图谱、向量库服务端、Redis 分布式锁
+prod = [
+    "psycopg[binary]>=3.1",
+    "langgraph-checkpoint-postgres>=2.0",
+    "redis>=5.0",
+    "SQLAlchemy>=2.0",
+]
+# 开发与测试
+dev = [
+    "pytest>=8.0",
+    "pytest-asyncio>=0.23",
+    "ruff>=0.5",
+]
+
+# -----------------------------------------------------------------------------
+# pytest：把 src 加入搜索路径（新人无需 install 即可跑测试）
+# -----------------------------------------------------------------------------
+[tool.pytest.ini_options]
+pythonpath = ["src"]
+testpaths = ["tests"]
+addopts = "-q --strict-markers"
+asyncio_mode = "auto"
+markers = [
+    "integration: 需要外部服务（向量库/LLM）的集成测试，默认跳过",
+]
+
+# -----------------------------------------------------------------------------
+# ruff：代码规范（行宽 110，允许中文注释）
+# -----------------------------------------------------------------------------
+[tool.ruff]
+line-length = 110
+target-version = "py311"
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "B", "UP"]
+ignore = ["E501"]
+
+# -----------------------------------------------------------------------------
+# setuptools：只在真正需要构建/可编辑安装时才用，平时靠 PYTHONPATH=src 或 --app-dir src
+# -----------------------------------------------------------------------------
+# 注意 py-modules = ["app_context"]：
+# app_context.py 直接放在 src/ 下（不在任何包里），setuptools 的 packages.find 只认
+# "目录 + __init__.py"，不会自动把它收进来。缺了这一行的话 `pip install -e .` 之后
+# `import agent_platform.api.app` 会在内部 `from app_context import ...` 处报
+# ModuleNotFoundError —— 表现出来就是"装了包还是起不来"。
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.setuptools]
+py-modules = ["app_context"]
+
+# Swagger UI 静态资源（离线文档用）必须在 wheel 里，否则装完包 /docs 会回退到 CDN。
+[tool.setuptools.package-data]
+"agent_platform.api" = ["static/swagger-ui/*"]

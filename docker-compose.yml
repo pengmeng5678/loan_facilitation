@@ -1,0 +1,159 @@
+# =============================================================================
+# 助贷 AI 中台 —— 本地/预发一键起全套
+#   docker compose up -d --build
+# 服务： api（七个服务，六个 Agent）· postgres（状态持久化）· qdrant（向量库）
+#        · redis（多副本分布式锁）
+# 默认不依赖外部 LLM：LLM_PROVIDER=echo 即可跑通全部链路。
+# 要接真实模型，把 LLM_PROVIDER 改成 openai 并填 LLM_API_KEY。
+# 语音客服默认 dry-run（不配 RTC/VOLC 密钥则只记录不下发，可完整演示）。
+#
+# 多副本部署（api 服务 scale > 1）时下面两项是硬要求，不是优化项：
+#   ① FLOW_LOCK_BACKEND=redis   —— SQLite 锁只在本进程内互斥，多 worker 下
+#      两条请求同时改同一条线索会双双拿到锁（重复放款类事故就是这么来的）；
+#   ② CHECKPOINTER_BACKEND=postgres —— HITL 审批挂起后若 resume 落到另一个
+#      副本，memory/sqlite 存根取不到状态，表现为"审批通过了但流程没继续"。
+#   两项都已配成 fail-fast：Redis 连不上返回 503（未做任何修改，重试安全），
+#   PG 配错直接启动失败并给出排查指引 —— 绝不静默降级。
+# =============================================================================
+services:
+  api:
+    build: .
+    image: zhudai-ai-suite:1.0.0
+    container_name: zhudai-api
+    ports:
+      - "8000:8000"
+    environment:
+      APP_ENV: docker
+      LOG_LEVEL: INFO
+      # --- API 鉴权（默认关：compose 本地一把起；对外暴露的生产环境务必
+      #     在 .env 里配 API_AUTH_ENABLED=true + API_AUTH_KEYS=<随机长 key>）---
+      API_AUTH_ENABLED: ${API_AUTH_ENABLED:-false}
+      API_AUTH_KEYS: ${API_AUTH_KEYS:-}
+      # --- LLM：默认离线 echo；接真实模型改这两行 ---
+      LLM_PROVIDER: ${LLM_PROVIDER:-echo}
+      LLM_BASE_URL: ${LLM_BASE_URL:-https://dashscope.aliyuncs.com/compatible-mode/v1}
+      LLM_API_KEY: ${LLM_API_KEY:-}
+      LLM_MODEL: ${LLM_MODEL:-qwen-plus}
+      # --- 存储：走 compose 内的 PG 与 Qdrant ---
+      CHECKPOINTER_BACKEND: postgres
+      POSTGRES_DSN: postgresql://postgres:postgres@postgres:5432/zhudai_ai
+      VECTOR_BACKEND: qdrant
+      QDRANT_URL: http://qdrant:6333
+      # --- 分布式锁：多副本必须 Redis（SQLite 锁跨进程无效，见文件头）---
+      FLOW_LOCK_BACKEND: ${FLOW_LOCK_BACKEND:-redis}
+      REDIS_URL: ${REDIS_URL:-redis://redis:6379/0}
+      POLICY_DATA_DIR: /app/.data/policies
+      PROFILE_DATA_DIR: /app/.data/profiles
+      MARKETING_DATA_DIR: /app/.data/marketing
+      SQLITE_BUSINESS_PATH: /app/.data/business.sqlite
+      # --- 项目六：推理网关（默认关闭 = 业务直连 LLM；开启后路由/缓存/限流/
+      #     成本台账/评测门禁全部生效，业务代码不用改）---
+      GATEWAY_ENABLED: ${GATEWAY_ENABLED:-false}
+      GATEWAY_SQLITE_PATH: /app/.data/gateway.sqlite
+      GATEWAY_API_KEYS: ${GATEWAY_API_KEYS:-}
+      GATEWAY_EVAL_MAX_REGRESSION: 0.02
+      # --- 项目七：素材推广与客户激活（防骚扰阈值按业务口径调）---
+      MARKETING_DEFAULT_CHANNEL: ${MARKETING_DEFAULT_CHANNEL:-moments}
+      MARKETING_DORMANT_DAYS: 7
+      MARKETING_ACTIVATION_COOLDOWN_DAYS: 3
+      MARKETING_MAX_ACTIVATION_PER_CUSTOMER: 2
+      # --- 项目八：流程数字员工（SLA / 费用口径 / 审批边界，改前对齐业务口径）---
+      FLOW_ENABLED: ${FLOW_ENABLED:-true}
+      FLOW_DATA_DIR: /app/.data/flow
+      FLOW_SQLITE_PATH: /app/.data/flow/flow.sqlite
+      FLOW_FIRST_CALL_SLA_MINUTES: 30
+      FLOW_WECHAT_SLA_HOURS: 2
+      FLOW_FOLLOWUP_SLA_HOURS: 24
+      FLOW_INVITE_CONFIRM_SLA_HOURS: 4
+      FLOW_SERVICE_FEE_RATE: 0.03
+      FLOW_FEE_RATE_LARGE_LOAN: 0.02
+      FLOW_LARGE_LOAN_THRESHOLD: 300000
+      FLOW_IDEMPOTENCY_TTL_HOURS: 24
+      FLOW_LOCK_TTL_SECONDS: 30
+      FLOW_HIGH_RISK_ACTIONS: send_contract,confirm_fee
+      # --- 项目八：SOP 定时扫描与通知（compose 默认开：这就是"部署即生效"的部分；
+      #     多副本同跑安全——扫描幂等 + 预警宽限期，不会重复预警/重复通知）---
+      FLOW_SCHEDULER_ENABLED: ${FLOW_SCHEDULER_ENABLED:-true}
+      FLOW_SCHEDULER_INTERVAL_SECONDS: ${FLOW_SCHEDULER_INTERVAL_SECONDS:-300}
+      FLOW_NOTIFY_WEBHOOK_URL: ${FLOW_NOTIFY_WEBHOOK_URL:-}
+      FLOW_NOTIFY_TIMEOUT_SECONDS: ${FLOW_NOTIFY_TIMEOUT_SECONDS:-3}
+      # --- 项目一：语音客服（火山 RTC）---
+      # VOICE_ENABLED=false 时走 dry-run：请求只记录不下发，容器里也能完整演示。
+      # 真实开房还要把 VOICE_PUBLIC_BASE_URL 配成公网可达地址（否则云端回调不到容器内）。
+      VOICE_ENABLED: ${VOICE_ENABLED:-false}
+      VOICE_DATA_DIR: /app/.data/voice
+      VOICE_SQLITE_PATH: /app/.data/voice/voice.sqlite
+      RTC_APP_ID: ${RTC_APP_ID:-}
+      RTC_APP_KEY: ${RTC_APP_KEY:-}
+      VOLC_ACCESS_KEY: ${VOLC_ACCESS_KEY:-}
+      VOLC_SECRET_KEY: ${VOLC_SECRET_KEY:-}
+      VOICE_TTS_APP_ID: ${VOICE_TTS_APP_ID:-}
+      VOICE_TTS_CLUSTER: ${VOICE_TTS_CLUSTER:-volcano_tts}
+      VOICE_TTS_VOICE_TYPE: ${VOICE_TTS_VOICE_TYPE:-}
+      VOICE_PUBLIC_BASE_URL: ${VOICE_PUBLIC_BASE_URL:-}
+      VOICE_CALLBACK_API_KEY: ${VOICE_CALLBACK_API_KEY:-}
+      VOICE_MAX_TOKENS: 220
+    volumes:
+      - ai-data:/app/.data
+    depends_on:
+      postgres:
+        condition: service_healthy
+      qdrant:
+        condition: service_started
+      redis:
+        condition: service_healthy
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request,sys; sys.exit(0 if urllib.request.urlopen('http://127.0.0.1:8000/health').status==200 else 1)"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 20s
+
+  postgres:
+    image: postgres:16-alpine
+    container_name: zhudai-postgres
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: zhudai_ai
+    volumes:
+      - pg-data:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d zhudai_ai"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    restart: unless-stopped
+
+  qdrant:
+    image: qdrant/qdrant:v1.12.4
+    container_name: zhudai-qdrant
+    ports:
+      - "6333:6333"
+      - "6334:6334"
+    volumes:
+      - qdrant-data:/qdrant/storage
+    restart: unless-stopped
+
+  redis:
+    image: redis:7-alpine
+    container_name: zhudai-redis
+    # 仅存分布式锁（租约秒级、无业务数据）：故意不挂卷 —— 重启丢的只是
+    # 在持锁请求的租约，TTL 到期自动释放，不影响正确性，省掉一层持久化依赖。
+    # 生产如已有共享 Redis，删掉这个服务、把 REDIS_URL 指过去即可。
+    ports:
+      - "6379:6379"
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 3s
+      retries: 5
+    restart: unless-stopped
+
+volumes:
+  ai-data:
+  pg-data:
+  qdrant-data:

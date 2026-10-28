@@ -1,0 +1,19 @@
+# 构建上下文排除项：镜像里不需要这些，排掉可以大幅缩小上下文传输体积
+.git
+.venv
+venv
+__pycache__
+*.pyc
+.pytest_cache
+.ruff_cache
+.mypy_cache
+.coverage
+htmlcov
+.data
+docs
+tests
+web/node_modules
+web/dist
+*.md
+!README.md
+.env

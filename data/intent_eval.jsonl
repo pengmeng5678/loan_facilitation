@@ -1,0 +1,72 @@
+{"case_id": "intent_001", "text": "我这个情况能贷多少，需要什么材料", "intents": ["match", "qa"], "note": "多意图：额度 + 资料"}
+{"case_id": "intent_002", "text": "帮我看看适合做哪个产品", "intents": ["match"], "note": "匹配"}
+{"case_id": "intent_003", "text": "推荐一个利率低一点的方案", "intents": ["match", "qa"], "note": "多意图：推荐 + 利率"}
+{"case_id": "intent_004", "text": "哪个产品对我更友好，额度也够", "intents": ["match"], "note": "匹配"}
+{"case_id": "intent_005", "text": "能批多少，多久放款", "intents": ["match", "qa"], "note": "多意图：额度 + 时效"}
+{"case_id": "intent_006", "text": "我公积金交了三年，符合哪个产品", "intents": ["match"], "note": "匹配"}
+{"case_id": "intent_007", "text": "资质一般但收入稳定，有什么组合可以做", "intents": ["match"], "note": "匹配"}
+{"case_id": "intent_008", "text": "帮我出一份方案书", "intents": ["proposal", "match"], "note": "方案书；含方案词"}
+{"case_id": "intent_009", "text": "把匹配结果整理成方案文档", "intents": ["proposal", "match"], "note": "方案书"}
+{"case_id": "intent_010", "text": "生成一份方案邮件发客户", "intents": ["proposal"], "note": "方案书"}
+{"case_id": "intent_011", "text": "给我出一份完整方案书", "intents": ["proposal", "match"], "note": "方案书"}
+{"case_id": "intent_012", "text": "方案书里要附上合规免责声明", "intents": ["proposal", "audit"], "note": "多意图：方案 + 合规"}
+{"case_id": "intent_013", "text": "公积金信用贷的利率区间是多少", "intents": ["qa"], "note": "政策问答"}
+{"case_id": "intent_014", "text": "申请需要准备哪些材料", "intents": ["qa"], "note": "政策问答"}
+{"case_id": "intent_015", "text": "公积金贷的准入条件是什么", "intents": ["qa"], "note": "政策问答"}
+{"case_id": "intent_016", "text": "一般多久放款", "intents": ["qa"], "note": "政策问答"}
+{"case_id": "intent_017", "text": "合同条款里提前还款怎么规定的", "intents": ["qa"], "note": "政策问答"}
+{"case_id": "intent_018", "text": "能不能办，需要什么手续", "intents": ["qa"], "note": "政策问答"}
+{"case_id": "intent_019", "text": "这个产品的期限有几种", "intents": ["qa"], "note": "政策问答"}
+{"case_id": "intent_020", "text": "政策上对负债率有什么要求", "intents": ["qa"], "note": "政策问答"}
+{"case_id": "intent_021", "text": "征信查询次数多，能不能办", "intents": ["qa"], "note": "政策问答"}
+{"case_id": "intent_022", "text": "帮我写一条朋友圈文案", "intents": ["generate"], "note": "文案生成"}
+{"case_id": "intent_023", "text": "生成一个抖音口播脚本", "intents": ["generate"], "note": "文案生成"}
+{"case_id": "intent_024", "text": "写一篇小红书种草笔记", "intents": ["generate"], "note": "文案生成"}
+{"case_id": "intent_025", "text": "给我几个素材标题", "intents": ["generate"], "note": "文案生成"}
+{"case_id": "intent_026", "text": "帮我生成一条不违规的朋友圈文案", "intents": ["generate"], "note": "否定句陷阱：不违规 ≠ 合规审核"}
+{"case_id": "intent_027", "text": "朋友圈文案怎么写才不违规", "intents": ["generate"], "note": "否定句陷阱"}
+{"case_id": "intent_028", "text": "这段短视频文案帮我想三个开头", "intents": ["generate"], "note": "文案生成"}
+{"case_id": "intent_029", "text": "这句话能不能说", "intents": ["audit"], "note": "合规审核"}
+{"case_id": "intent_030", "text": "帮我审核一下这条话术，顺便看看有没有敏感词", "intents": ["audit", "generate"], "note": "多意图：审核 + 话术"}
+{"case_id": "intent_031", "text": "这句话有没有红线", "intents": ["audit"], "note": "合规审核"}
+{"case_id": "intent_032", "text": "这段文案符合广告法吗", "intents": ["audit", "generate"], "note": "多意图：合规 + 文案"}
+{"case_id": "intent_033", "text": "帮我审核这段营销话术是否合规", "intents": ["audit", "generate"], "note": "多意图：审核 + 话术"}
+{"case_id": "intent_034", "text": "这句话有没有违规风险", "intents": ["audit"], "note": "合规审核"}
+{"case_id": "intent_035", "text": "C1002 现在到哪一步了，费用大概多少", "intents": ["progress", "fee"], "note": "多意图：进度 + 费用"}
+{"case_id": "intent_036", "text": "客户材料已经提交，现在走到哪一步了", "intents": ["progress", "qa"], "note": "多意图：进度 + 材料"}
+{"case_id": "intent_037", "text": "帮我查下 CU001 的单子状态", "intents": ["progress"], "note": "进度查询"}
+{"case_id": "intent_038", "text": "这个单子卡在哪了", "intents": ["progress"], "note": "进度查询"}
+{"case_id": "intent_039", "text": "客户材料交了吗，进度怎么样", "intents": ["progress", "qa"], "note": "多意图：进度 + 材料"}
+{"case_id": "intent_040", "text": "流程走到面签了吗", "intents": ["progress"], "note": "进度查询"}
+{"case_id": "intent_041", "text": "服务费怎么收，办不成退吗", "intents": ["fee"], "note": "费用咨询"}
+{"case_id": "intent_042", "text": "这个方案报价多少", "intents": ["fee", "match"], "note": "多意图：报价 + 方案"}
+{"case_id": "intent_043", "text": "费用能不能低一点", "intents": ["fee"], "note": "费用咨询"}
+{"case_id": "intent_044", "text": "你们手续费几个点", "intents": ["fee"], "note": "费用咨询"}
+{"case_id": "intent_045", "text": "大概要花多少钱", "intents": ["fee"], "note": "费用咨询"}
+{"case_id": "intent_046", "text": "除了服务费还有别的收费吗", "intents": ["fee"], "note": "费用咨询"}
+{"case_id": "intent_047", "text": "把三个月没联系的客户捞出来做回访", "intents": ["activation"], "note": "客户激活"}
+{"case_id": "intent_048", "text": "哪些沉睡客户值得再触达一次", "intents": ["activation"], "note": "客户激活"}
+{"case_id": "intent_049", "text": "邀约一批沉睡客户到店", "intents": ["activation"], "note": "客户激活"}
+{"case_id": "intent_050", "text": "给很久没联系的客户发条触达消息", "intents": ["activation"], "note": "客户激活"}
+{"case_id": "intent_051", "text": "上周各渠道的投产比怎么样", "intents": ["attribution"], "note": "效果归因"}
+{"case_id": "intent_052", "text": "帮我分析一下素材效果，做个归因", "intents": ["attribution", "generate"], "note": "多意图：归因 + 素材"}
+{"case_id": "intent_053", "text": "抖音和视频号的转化率对比", "intents": ["attribution"], "note": "效果归因"}
+{"case_id": "intent_054", "text": "ROI 是多少，哪个渠道最好", "intents": ["attribution"], "note": "大小写：ROI"}
+{"case_id": "intent_055", "text": "帮我做素材投产对比", "intents": ["attribution", "generate"], "note": "多意图：归因 + 素材"}
+{"case_id": "intent_056", "text": "帮我查下 C1002 的进度，费用多少，顺便生成一条朋友圈文案", "intents": ["generate", "progress", "fee"], "note": "三意图"}
+{"case_id": "intent_057", "text": "客户问利率多少，我该怎么回答", "intents": ["qa"], "note": "政策问答"}
+{"case_id": "intent_058", "text": "推荐方案的时候要说明利率区间和材料清单", "intents": ["match", "qa"], "note": "多意图：推荐 + 政策"}
+{"case_id": "intent_059", "text": "帮我生成一份方案书，顺便检查一下有没有敏感词", "intents": ["proposal", "audit"], "note": "多意图：方案 + 合规"}
+{"case_id": "intent_060", "text": "客户问能不能保证下款，这句话能不能说", "intents": ["audit"], "note": "合规审核"}
+{"case_id": "intent_061", "text": "把 60 天没联系的老客户筛出来，安排回访", "intents": ["activation"], "note": "客户激活"}
+{"case_id": "intent_062", "text": "沉睡客户名单拉一下，准备触达", "intents": ["activation"], "note": "客户激活"}
+{"case_id": "intent_063", "text": "最近该邀约哪些客户", "intents": ["activation"], "note": "客户激活"}
+{"case_id": "intent_064", "text": "帮我制定一个沉睡客户激活计划", "intents": ["activation"], "note": "客户激活"}
+{"case_id": "intent_065", "text": "客户很久没联系了，怎么做回访比较自然", "intents": ["activation"], "note": "客户激活"}
+{"case_id": "intent_066", "text": "这个月投产比下降了吗", "intents": ["attribution"], "note": "效果归因"}
+{"case_id": "intent_067", "text": "帮我算一下各素材的转化率", "intents": ["attribution", "generate"], "note": "多意图：归因 + 素材"}
+{"case_id": "intent_068", "text": "办下来总共要花多少钱", "intents": ["fee"], "note": "费用咨询"}
+{"case_id": "intent_069", "text": "服务费什么时候收", "intents": ["fee"], "note": "费用咨询"}
+{"case_id": "intent_070", "text": "这个产品对年龄有什么条件", "intents": ["qa"], "note": "政策问答"}
+{"case_id": "intent_071", "text": "我这种情况能匹配什么额度", "intents": ["match"], "note": "匹配"}
+{"case_id": "intent_072", "text": "能不能办，需要什么手续", "intents": ["qa"], "note": "政策问答"}

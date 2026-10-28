@@ -1,0 +1,7 @@
+-r requirements.txt
+
+# 测试
+pytest>=8.0
+pytest-asyncio>=0.23
+# 代码规范
+ruff>=0.5
