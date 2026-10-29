@@ -50,7 +50,14 @@ async function request<T>(path: string, options: RequestOptions = {}): Promise<T
   const key = getApiKey();
   if (key) headers["X-API-Key"] = key;
   if (body !== undefined) headers["Content-Type"] = "application/json";
-  if (idempotencyKey) headers["Idempotency-Key"] = idempotencyKey;
+  // HTTP header 只接受 ISO-8859-1：键里一旦带中文（门店名/负责人名），fetch 会抛
+  // "String contains non ISO-8859-1 code point"。这里做兜底——纯 ASCII 键原样透传
+  // （历史幂等记录继续命中），含非 ASCII 才编码；根因修复在拼键处，只编码中文段。
+  if (idempotencyKey) {
+    headers["Idempotency-Key"] = /^[\x20-\x7e]*$/.test(idempotencyKey)
+      ? idempotencyKey
+      : encodeURIComponent(idempotencyKey);
+  }
 
   const resp = await fetch(url.toString(), {
     method,
@@ -435,7 +442,8 @@ export const api = {
       request<Lead>("/flow/leads", {
         method: "POST",
         body,
-        idempotencyKey: `intake:${body.customer_id}:${body.source}:${body.owner}`,
+        // owner 是中文姓名，必须编码后才能进 header（见 request() 里的说明）
+        idempotencyKey: `intake:${body.customer_id}:${body.source}:${encodeURIComponent(body.owner)}`,
       }),
     advance: (leadId: string, toStage: string, reason = "") =>
       request<Lead>(`/flow/leads/${leadId}/advance`, {
@@ -446,7 +454,8 @@ export const api = {
       request<Record<string, unknown>>(`/flow/leads/${leadId}/invite`, {
         method: "POST",
         body: { store, scheduled_at: scheduledAt, note },
-        idempotencyKey: `invite:${leadId}:${store}:${Math.floor(scheduledAt)}`,
+        // store 是中文门店名（如"南京新街口门店"），编码后再进 header
+        idempotencyKey: `invite:${leadId}:${encodeURIComponent(store)}:${Math.floor(scheduledAt)}`,
       }),
     arrived: (leadId: string) =>
       request<Lead>(`/flow/leads/${leadId}/arrived`, {
